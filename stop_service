@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Pass script name to stop_service"
+    exit 1
+fi
+
+ps aux | grep $1 | grep -v grep | awk '{print $2}' | xargs kill -9
+

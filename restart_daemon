@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Function to manage a service
+manage_service() {
+    action=$1
+    service_name=$2
+    systemctl $action "${service_name}.service"
+}
+
+# Main logic
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 <service>"
+    exit 1
+fi
+
+service_name=$1
+
+# Stop the service
+manage_service "stop" "$service_name"
+
+# Start the service
+manage_service "start" "$service_name"
+
+# Enable the service
+manage_service "enable" "$service_name"
+

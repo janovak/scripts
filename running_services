@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ps aux | grep '[p]ython.*\.py' | awk '{print $12}' 
+
