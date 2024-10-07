@@ -10,7 +10,7 @@ source env/bin/activate
 script_name=$(basename "$1" .py)
 log_file="${script_name}.log"
 
-nohup python "$1" > "./logs/$log_file" 2>&1 &
+nohup python "$1" > "$HOME/logs/$log_file" 2>&1 &
 
 echo "Running $1 in the background. Output is being logged to $log_file"
 
