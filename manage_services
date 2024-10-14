@@ -9,6 +9,9 @@ SERVICES=(
     "clip_creation_service.py"
 )
 
+# Get the command passed as a first argument
+COMMAND=$1
+
 # Function to start services
 start_services() {
     for service in "${SERVICES[@]}"; do
@@ -29,7 +32,7 @@ purge_queues() {
     echo "Purging all RabbitMQ queues..."
 
     # Store the queue names in a variable
-    queues=$(sudo rabbitmqctl list_queues | awk '{print $1}' | grep -v 'Timeout:\|Listing\|name')
+    queues=$(sudo rabbitmqctl list_queues | awk '{print $COMMAND' | grep -v 'Timeout:\|Listing\|name')
 
     # Loop through each queue and purge it
     for queue in $queues; do
@@ -38,19 +41,30 @@ purge_queues() {
     done
 }
 
+# Check if the command is "start" or "restart" to include the working directory
+if [[ $COMMAND == "start" || $COMMAND == "restart" ]]; then
+    WORKING_DIR=$2
+    if [[ -z "$WORKING_DIR" ]]; then
+        echo "Usage: $0 {start|stop|restart} /path/to/working_directory"
+        exit 1
+    fi
+    # Change to the working directory
+    cd "$WORKING_DIR" || { echo "Failed to change directory to $WORKING_DIR"; exit 1; }
+fi
+
 # Main script logic
-if [[ $1 == "start" ]]; then
+if [[ $COMMAND == "start" ]]; then
     start_services
-elif [[ $1 == "stop" ]]; then
+elif [[ $COMMAND == "stop" ]]; then
     stop_services
-elif [[ $1 == "purge_queues" ]]; then
+elif [[ $COMMAND == "purge_queues" ]]; then
     purge_queues
-elif [[ $1 == "restart" ]]; then
+elif [[ $COMMAND == "restart" ]]; then
     stop_services
     purge_queues
     start_services
 else
-    echo "Usage: $0 {start|stop|purge_queues|restart}"
+    echo "Usage: $0 {start|stop|restart|purge_queues}"
     exit 1
 fi
 
