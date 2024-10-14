@@ -28,17 +28,22 @@ stop_services() {
     done
 }
 
-purge_queues() {
-    echo "Purging all RabbitMQ queues..."
+# Function to restart services and purge RabbitMQ queues
+restart_services() {
+    echo "Restarting services and purging RabbitMQ queues..."
 
-    # Store the queue names in a variable
-    queues=$(sudo rabbitmqctl list_queues | awk '{print $COMMAND' | grep -v 'Timeout:\|Listing\|name')
+    # Stop services
+    stop_services
 
-    # Loop through each queue and purge it
+    # Purge all RabbitMQ queues
+    queues=$(sudo rabbitmqctl list_queues | awk '{print $1}' | grep -v 'Timeout:\|Listing\|name')
     for queue in $queues; do
         echo "Purging queue: $queue"
         sudo rabbitmqctl purge_queue "$queue"
     done
+
+    # Start services
+    start_services
 }
 
 # Check if the command is "start" or "restart" to include the working directory
@@ -53,18 +58,18 @@ if [[ $COMMAND == "start" || $COMMAND == "restart" ]]; then
 fi
 
 # Main script logic
-if [[ $COMMAND == "start" ]]; then
-    start_services
-elif [[ $COMMAND == "stop" ]]; then
-    stop_services
-elif [[ $COMMAND == "purge_queues" ]]; then
-    purge_queues
-elif [[ $COMMAND == "restart" ]]; then
-    stop_services
-    purge_queues
-    start_services
-else
-    echo "Usage: $0 {start|stop|restart|purge_queues}"
-    exit 1
-fi
-
+case $COMMAND in
+    start)
+        start_services
+        ;;
+    stop)
+        stop_services
+        ;;
+    restart)
+        restart_services
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart} /path/to/working_directory"
+        exit 1
+        ;;
+esac
